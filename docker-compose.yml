@@ -1,0 +1,43 @@
+volumes:
+  aemotor-vol:
+  aemotor-test-vol:
+
+services:
+
+  postgres:
+    image: postgres:15.2
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: pwd # environment variable that sets the superuser password for PostgreSQL
+      POSTGRES_USER: usr # variable that will create the specified user with superuser power and a database with the same name
+      POSTGRES_DB: aemotor
+    volumes:
+      - aemotor-vol:/var/lib/postgresql/data
+      # - ./scripts:/docker-entrypoint-initdb.d/
+    ports:
+      - 5432:5432
+
+  postgres-test:
+    build: 
+      context: .
+      dockerfile: ./docker/postgres.test.Dockerfile
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: pwd 
+      POSTGRES_USER: usr
+      POSTGRES_DB: aemotor
+    volumes:
+      - aemotor-test-vol:/var/lib/postgresql/data
+    ports:
+      - 5433:5433
+
+  python:
+    build: 
+      context: .
+      dockerfile: ./docker/python.Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - 80:5000
+    volumes:
+      - ./app:/usr/src/app
